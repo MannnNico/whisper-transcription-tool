@@ -1,0 +1,42 @@
+import whisper
+from datetime import timedelta
+import os
+
+def format_time(seconds):
+    """Convert seconds to hh:mm:ss format."""
+    return str(timedelta(seconds=int(seconds)))
+
+def transcribe_audio(file_path: str, model_size: str = "base"):
+    print("Loading Whisper model...")
+    model = whisper.load_model(model_size)
+
+    print(f"Transcribing: {file_path}")
+    result = model.transcribe(file_path)
+
+    transcript = []
+    for segment in result["segments"]:
+        start = format_time(segment["start"])
+        end = format_time(segment["end"])
+        text = segment["text"].strip()
+        transcript.append(f"[{start} - {end}] Speaker: {text}")
+
+    return transcript
+
+def save_transcript(transcript, output_path):
+    """Save the transcript to a text file."""
+    with open(output_path, "w", encoding="utf-8") as f:
+        for line in transcript:
+            f.write(line + "\n")
+    print(f"Transcript saved to: {output_path}")
+
+def main():
+    audio_file = "Record2.m4a"  # Your audio file here
+    model_size = "medium"  # You can also try: tiny, small, medium, large
+
+    transcript = transcribe_audio(audio_file, model_size)
+
+    output_file = os.path.splitext(audio_file)[0] + "_transcript.txt"
+    save_transcript(transcript, output_file)
+
+if __name__ == "__main__":
+    main()
